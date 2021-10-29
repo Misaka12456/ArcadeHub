@@ -44,27 +44,38 @@ namespace ArcadeManager.Core
 					switch (tempClient.Name.Split(new[] { '.' }, count: 2)[0].ToLower())
 					{
 						case "arcade":
-							if (tempClient.DirectoryName.Contains("Arcade-Zero"))
+							switch (tempClient.DirectoryName.ToLower())
 							{
-								r.Add(new ArcadeClient()
-								{
-									ClientName = "Arcade-Zero",
-									ClientPath = tempClient.FullName,
-									ClientBackgroundPath = Path.Combine(tempClient.Directory.FullName, "自定义背景(User Backgrounds)"),
-									ClientSkinPath = null,
-									Developer = "Tempestissiman"
-								});
-							}
-							else
-							{
-								r.Add(new ArcadeClient()
-								{
-									ClientName = "Arcade",
-									ClientPath = tempClient.FullName,
-									ClientBackgroundPath = Path.Combine(tempClient.Directory.FullName, "自定义背景(User Backgrounds)"),
-									ClientSkinPath = null,
-									Developer = "Schwarzer"
-								});
+								case "arcade-zero":
+									r.Add(new ArcadeClient()
+									{
+										ClientName = "Arcade-Zero",
+										ClientPath = tempClient.FullName,
+										ClientBackgroundPath = Path.Combine(tempClient.Directory.FullName, "自定义背景(User Backgrounds)"),
+										ClientSkinPath = null,
+										Developer = "Tempestissiman"
+									});
+									break;
+								case "arcade-one":
+									r.Add(new ArcadeClient()
+									{
+										ClientName = "Arcade-One",
+										ClientPath = tempClient.FullName,
+										ClientBackgroundPath = Path.Combine(tempClient.Directory.FullName, "自定义背景(User Backgrounds)"),
+										ClientSkinPath = null,
+										Developer = "yyyr"
+									});
+									break;
+								default:
+									r.Add(new ArcadeClient()
+									{
+										ClientName = "Arcade",
+										ClientPath = tempClient.FullName,
+										ClientBackgroundPath = Path.Combine(tempClient.Directory.FullName, "自定义背景(User Backgrounds)"),
+										ClientSkinPath = null,
+										Developer = "Schwarzer"
+									});
+									break;
 							}
 							break;
 						case "arcade-plus":

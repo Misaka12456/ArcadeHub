@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArcadeManager", "ArcadeMana
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{701A886B-4E64-4010-8317-02526C8F220A}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\..\123 Open-Source Organization\LICENSE = ..\..\..\123 Open-Source Organization\LICENSE
+		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject
