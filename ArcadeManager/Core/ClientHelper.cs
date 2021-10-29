@@ -44,7 +44,7 @@ namespace ArcadeManager.Core
 					switch (tempClient.Name.Split(new[] { '.' }, count: 2)[0].ToLower())
 					{
 						case "arcade":
-							switch (tempClient.DirectoryName.ToLower())
+							switch (tempClient.Directory.Name.ToLower())
 							{
 								case "arcade-zero":
 									r.Add(new ArcadeClient()
