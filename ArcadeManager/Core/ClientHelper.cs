@@ -56,16 +56,6 @@ namespace ArcadeManager.Core
 										Developer = "Tempestissiman"
 									});
 									break;
-								case "arcade-one":
-									r.Add(new ArcadeClient()
-									{
-										ClientName = "Arcade-One",
-										ClientPath = tempClient.FullName,
-										ClientBackgroundPath = Path.Combine(tempClient.Directory.FullName, "自定义背景(User Backgrounds)"),
-										ClientSkinPath = null,
-										Developer = "yyyr"
-									});
-									break;
 								default:
 									r.Add(new ArcadeClient()
 									{
@@ -77,6 +67,16 @@ namespace ArcadeManager.Core
 									});
 									break;
 							}
+							break;
+						case "arcade-one":
+							r.Add(new ArcadeClient()
+							{
+								ClientName = "Arcade-One",
+								ClientPath = tempClient.FullName,
+								ClientBackgroundPath = Path.Combine(tempClient.Directory.FullName, "自定义背景(User Backgrounds)"),
+								ClientSkinPath = null,
+								Developer = "yyyr & LAM"
+							});
 							break;
 						case "arcade-plus":
 							r.Add(new ArcadeClient()
