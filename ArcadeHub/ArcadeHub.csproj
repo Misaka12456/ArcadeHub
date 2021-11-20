@@ -7,8 +7,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{22D0BE97-7739-43BE-AD0C-B98C9C365D2D}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>ArcadeManager</RootNamespace>
-    <AssemblyName>ArcadeManager</AssemblyName>
+    <RootNamespace>ArcadeHub</RootNamespace>
+    <AssemblyName>ArcadeHub</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -45,7 +45,7 @@
     <ApplicationIcon>Logo.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ArcadeManager.App</StartupObject>
+    <StartupObject>ArcadeHub.App</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Costura, Version=5.7.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -214,7 +214,9 @@
     <Compile Include="Core\ClientHelper.cs" />
     <Compile Include="Core\FolderWatchHelper.cs" />
     <Compile Include="Core\MFTScanner.cs" />
+    <Compile Include="Core\ProjectHelper.cs" />
     <Compile Include="DataSourceModels\AdeClientSource.cs" />
+    <Compile Include="DataSourceModels\AdeProjectSource.cs" />
     <Compile Include="DataSourceModels\WatchEventLogSource.cs" />
     <Compile Include="Forms\Win_About.xaml.cs">
       <DependentUpon>Win_About.xaml</DependentUpon>
@@ -231,6 +233,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\ArcadeProject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

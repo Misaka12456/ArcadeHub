@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ArcadeManager.Core
+namespace ArcadeHub.Core
 {
 	public static class FolderWatchHelper
 	{

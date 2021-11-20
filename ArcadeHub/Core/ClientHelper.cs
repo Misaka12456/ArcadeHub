@@ -1,5 +1,5 @@
 ﻿#pragma warning disable IDE0044
-using ArcadeManager.Models;
+using ArcadeHub.Models;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ArcadeManager.Core
+namespace ArcadeHub.Core
 {
 	public static class ClientHelper
 	{
@@ -67,6 +67,16 @@ namespace ArcadeManager.Core
 									});
 									break;
 							}
+							break;
+						case "arcade-chan":
+							r.Add(new ArcadeClient()
+							{
+								ClientName = "Arcade-Chan",
+								ClientPath = tempClient.FullName,
+								ClientBackgroundPath = Path.Combine(tempClient.Directory.FullName, "Background"),
+								ClientSkinPath = Path.Combine(tempClient.Directory.FullName, "Skin"),
+								Developer = "Misaka12456 / Mizutani Kana"
+							});
 							break;
 						case "arcade-one":
 							r.Add(new ArcadeClient()

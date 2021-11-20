@@ -8,7 +8,7 @@ using System.Windows;
 using System.Windows.Forms;
 using Application = System.Windows.Application;
 
-namespace ArcadeManager
+namespace ArcadeHub
 {
 	/// <summary>
 	/// App.xaml 的交互逻辑

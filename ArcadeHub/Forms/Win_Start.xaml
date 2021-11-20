@@ -1,13 +1,13 @@
-﻿<Window x:Class="ArcadeManager.Forms.Win_Start"
+﻿<Window x:Class="ArcadeHub.Forms.Win_Start"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ArcadeManager.Forms"
+        xmlns:local="clr-namespace:ArcadeHub.Forms"
         mc:Ignorable="d"
-        Title="Project Arcade Manager" Height="263" Width="775" WindowStyle="None" AllowsTransparency="True"
-        Opacity="0"
-        WindowStartupLocation="CenterScreen" Loaded="Window_Loaded" Icon="/ArcadeManager;component/Logo.ico">
+        Title="Project Arcade Hub" Height="263" Width="775" WindowStyle="None" AllowsTransparency="True"
+        Opacity="100"
+        WindowStartupLocation="CenterScreen" Loaded="Window_Loaded" Icon="/ArcadeHub;component/Logo.ico">
     <Window.Resources>
         <Storyboard x:Key="FadeIn">
             <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
@@ -24,11 +24,11 @@
     </Window.Resources>
     <Grid>
         <Label Content="Misaka Castle's Project &quot;Utility Works&quot;" FontFamily="Segoe Script" FontSize="14px" Foreground="Green"  HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
-        <Image x:Name="ptbx_logo" HorizontalAlignment="Left" Height="64" VerticalAlignment="Top" Width="64" Margin="109,51,0,0" Source="/ArcadeManager;component/Logo.ico" Stretch="Fill"/>
-        <Label Content="Project Arcade Manager" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="228,51,0,0" Width="396"
-               FontFamily="Comic Sans MS" FontSize="25pt" Foreground="SkyBlue"/>
         <Label Content="(C)Copyright 2018-2021 Misaka Castle Group. All rights reserved.&#xD;&#xA;Inspired by Arcade (Original made by Schwarzer)&#xD;&#xA;&quot;Arcaea(TM)&quot; is a trademark of Lowiro Limited." HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Fuchsia" Margin="6,202,0,0"/>
         <Label x:Name="lbl_ver" Content="v0.1.0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="681,228,0,0" Width="69" VerticalContentAlignment="Center" HorizontalContentAlignment="Right"/>
+        <Image x:Name="ptbx_logo" HorizontalAlignment="Left" Height="64" VerticalAlignment="Top" Width="64" Margin="164,51,0,0" Source="/ArcadeHub;component/Logo.ico" Stretch="Fill"/>
+        <Label Content="Project Arcade Hub" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="283,51,0,0" Width="325"
+            FontFamily="Comic Sans MS" FontSize="25pt" Foreground="SkyBlue"/>
 
     </Grid>
 </Window>

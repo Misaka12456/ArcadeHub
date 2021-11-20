@@ -1,0 +1,88 @@
+﻿<Window x:Class="ArcadeHub.Forms.Win_Main"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ArcadeHub.Forms"
+        mc:Ignorable="d"
+        Title="Project Arcade Hub" Width="950" Height="520"
+        Loaded="Window_Loaded" Closing="Window_Closing" ResizeMode="CanMinimize" Icon="/ArcadeHub;component/Logo.ico">
+    <DockPanel VerticalAlignment="Bottom">
+        <Menu DockPanel.Dock="Top" x:Name="msp_Main" Height="25" Margin="0,0,0,0" VerticalAlignment="Top">
+            <MenuItem x:Name="tsmi_file" Header="文件" Height="25" >
+                <MenuItem x:Name="tsmi_file_showWatcherLog" Header="查看文件监测日志" Click="tsmi_file_showWatcherLog_Click" />
+            </MenuItem>
+            <MenuItem x:Name="tsmi_projects" Header="项目" Height="25">
+                <MenuItem x:Name="tsmi_projects_add" Header="添加已有项目" Click="tsmi_projects_add_Click" />
+                <MenuItem x:Name="tsmi_projects_remove" Header="删除选中的项目" Click="tsmi_projects_remove_Click" />
+            </MenuItem>
+            <MenuItem x:Name="tsmi_manage" Header="管理" Height="25">
+                <MenuItem x:Name="tsmi_manage_reSearchClients" Header="重新搜索已安装的Arcade发行版" Click="tsmi_manage_reSearchClients_Click"/>
+            </MenuItem>
+            <MenuItem x:Name="tsmi_help" Header="帮助">
+                <MenuItem x:Name="tsmi_help_about" Header="关于 Project Arcade Hub..." Click="tsmi_help_about_Click"/>
+            </MenuItem>
+        </Menu>
+        <StatusBar DockPanel.Dock="Bottom" Height="30" Margin="0,0,0,0" VerticalContentAlignment="Stretch">
+            <Label x:Name="lbl_status" Content="就绪" HorizontalAlignment="Left" VerticalAlignment="Top" Width="942" FontSize="11"/>
+        </StatusBar>
+        <TabControl Height="436" TabStripPlacement="Left">
+            <TabItem Header="项目" FontSize="18" Width="120" Height="50">
+                <Grid>
+                    <ListBox x:Name="lbx_projects" Background="Transparent" MouseDoubleClick="lbx_projects_MouseDoubleClick" LostFocus="lbx_projects_LostFocus" SelectionChanged="lbx_projects_SelectionChanged">
+                        <ListBox.Resources>
+                            <Style TargetType="ListBox">
+                                <Setter Property="ItemContainerStyle">
+                                    <Setter.Value>
+                                        <Style TargetType="ListBoxItem">
+                                            <Style.Triggers>
+                                                <Trigger Property="ListBoxItem.IsSelected" Value="True">
+                                                    <Setter Property="ListBoxItem.Background" Value="#D4DCD6"/>
+                                                </Trigger>
+                                                <Trigger Property="ListBoxItem.IsSelected" Value="False">
+                                                    <Setter Property="ListBoxItem.Background" Value="Transparent" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.Resources>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Height="75" Width="805">
+                                    <Label Content="{Binding ProjectName}" Height="30" VerticalAlignment="Top" FontSize="15" FontFamily="微软雅黑" Margin="10,5,0,0"/>
+                                    <Label Content="{Binding ProjectPath}" FontSize="11" Foreground="Gray" FontFamily="微软雅黑" HorizontalAlignment="Left"  Width="795" Margin="10,28,0,20"/>
+                                    <Label Content="{Binding LastModifyTimeStr}" FontSize="12" Foreground="Gray" FontFamily="微软雅黑" HorizontalAlignment="Left" Margin="10,49,0,1" Width="496"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Label x:Name="lbl_chanNotInstalled" Content="   未安装任何Arcade-Chan发行版版本。&#xA; 项目管理仅适用于Arcade-Chan发行版。" Foreground="Gray" FontSize="13" HorizontalContentAlignment="Center" Margin="256,193,257,194" />
+                </Grid>
+            </TabItem>
+            <TabItem Header="发行版" FontSize="18" Width="120" Height="50">
+                <ListBox x:Name="lbx_clients" Background ="Transparent" ScrollViewer.CanContentScroll="True"
+                        MouseDoubleClick="lbx_clients_MouseDoubleClick" HorizontalAlignment="Right" Width="816">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Tag="{Binding ClientName}" Width="250" Height="auto" VerticalAlignment="Stretch"  HorizontalAlignment="Center">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                </Grid.RowDefinitions>
+                                <Image Grid.Row="0" Source="{Binding ClientIconSource}" Width="64" Height="64" />
+                                <TextBlock Grid.Row="1" Text="{Binding ClientName}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

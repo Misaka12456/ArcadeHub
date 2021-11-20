@@ -1,7 +1,7 @@
 ﻿#nullable enable
 using Newtonsoft.Json;
 
-namespace ArcadeManager.Models
+namespace ArcadeHub.Models
 {
 	public struct ArcadeClient
 	{

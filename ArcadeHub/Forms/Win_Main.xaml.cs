@@ -1,6 +1,6 @@
 ﻿#pragma warning disable IDE0058
-using ArcadeManager.Core;
-using ArcadeManager.DataSourceModels;
+using ArcadeHub.Core;
+using ArcadeHub.DataSourceModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,15 +13,22 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using ContextMenuStrip = System.Windows.Forms.ContextMenuStrip;
+using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
+using DialogResult2 = System.Windows.Forms.DialogResult;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using Path = System.IO.Path;
+using ToolStripItem = System.Windows.Forms.ToolStripItem;
 using ToolStripMenuItem = System.Windows.Forms.ToolStripMenuItem;
 using ToolStripSeparator = System.Windows.Forms.ToolStripSeparator;
-using ResMgr = ArcadeManager.Properties.Resources;
+using ResMgr = ArcadeHub.Properties.Resources;
 using System.Drawing;
 using System.Runtime.Remoting.Channels;
+using ArcadeHub.Models;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System.Runtime.InteropServices;
 
-namespace ArcadeManager.Forms
+namespace ArcadeHub.Forms
 {
 	/// <summary>
 	/// Win_Main.xaml 的交互逻辑
@@ -44,10 +51,62 @@ namespace ArcadeManager.Forms
 				trayIcon = new NotifyIcon()
 				{
 					Icon = ResMgr.Logo,
-					Text = "Project Arcade Manager"
+					Text = "Project Arcade Hub"
 				};
 				trayIcon.Visible = true;
 				var csp = new ContextMenuStrip();
+				var tsmi_ntfi_projects = new ToolStripMenuItem()
+				{
+					Text = "选择Arcade项目(&P)..."
+				};
+				foreach (var project in ProjectHelper.ProjectList)
+				{
+					var tsmi_ntfi_project = new ToolStripMenuItem()
+					{
+						Text = project.ProjectName
+					};
+					tsmi_ntfi_project.Click += (sender, e) =>
+					{
+						var arcadeChanList = ClientHelper.ClientList.FindAll((ArcadeClient client) => { return client.ClientName == "Arcade-Chan"; });
+						if (arcadeChanList.Count > 1)
+						{
+							MessageBox.Show("诶？发行版列表当中怎么出现了好几个Arcade-Chan？(っ °Д °;)っ\n快把重复的卸载掉后重新查找所有Arcade发行版然后再试试……?", "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+						}
+						else if (!arcadeChanList.Any())
+						{
+							MessageBox.Show("您似乎还未安装Arcade-Chan发行版的任何版本呢……\nArcade项目管理仅适用于Arcade-Chan发行版哦\n安装一个Arcade-Chan发行版(版本v0.1.0及以上)后重新查找所有Arcade发行版然后再来试试吧", "Oops!",
+								MessageBoxButton.OK, MessageBoxImage.Error);
+						}
+						else
+						{
+							var chanClient = arcadeChanList.First();
+							string chanClientPath = chanClient.ClientPath;
+							if (File.Exists(project.ProjFilePath))
+							{
+								lbl_status.Content = $"启动 {chanClient.ClientName}...";
+								Process.Start(new ProcessStartInfo()
+								{
+									FileName = chanClientPath,
+									UseShellExecute = false,
+									WindowStyle = ProcessWindowStyle.Normal,
+									Arguments = '"' + project.ProjFilePath + '"',
+									WorkingDirectory = project.ProjectPath
+								});
+								WindowState = WindowState.Minimized;
+								lbl_status.Content = "就绪";
+							}
+							else
+							{
+								MessageBox.Show("这个项目的配置文件似乎不见了呢...\n" +
+									"检查一下项目是不是已经挪动位置了qwq\n" +
+									"查找的配置文件路径:\n" + project.ProjFilePath, "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+							}
+						}
+					};
+					tsmi_ntfi_projects.DropDownItems.Add(tsmi_ntfi_project);
+				}
+				csp.Items.Add(tsmi_ntfi_projects);
+
 				var tsmi_ntfi_clients = new ToolStripMenuItem()
 				{
 					Text = "选择Arcade发行版(&S)..."
@@ -77,7 +136,9 @@ namespace ArcadeManager.Forms
 					tsmi_ntfi_clients.DropDownItems.Add(tsmi_ntfi_client);
 				}
 				csp.Items.Add(tsmi_ntfi_clients);
+
 				csp.Items.Add(new ToolStripSeparator());
+
 				var tsmi_ntfi_file = new ToolStripMenuItem()
 				{
 					Text = "文件(&F)"
@@ -92,7 +153,9 @@ namespace ArcadeManager.Forms
 				};
 				tsmi_ntfi_file.DropDownItems.Add(tsmi_ntfi_file_showWatcherLog);
 				csp.Items.Add(tsmi_ntfi_file);
+
 				csp.Items.Add(new ToolStripSeparator());
+
 				var tsmi_ntfi_showMain = new ToolStripMenuItem()
 				{
 					Text = "显示主窗口(&S)"
@@ -106,7 +169,9 @@ namespace ArcadeManager.Forms
 					Activate();
 				};
 				csp.Items.Add(tsmi_ntfi_showMain);
+
 				csp.Items.Add(new ToolStripSeparator());
+
 				var tsmi_ntfi_exit = new ToolStripMenuItem()
 				{
 					Text = "退出 Project Arcade Manager(&E)"
@@ -124,6 +189,7 @@ namespace ArcadeManager.Forms
 					}
 				};
 				csp.Items.Add(tsmi_ntfi_exit);
+
 				trayIcon.DoubleClick += (sender, e) =>
 				{
 					if (Visibility != Visibility.Visible)
@@ -148,7 +214,12 @@ namespace ArcadeManager.Forms
 			if (File.Exists(Path.Combine(AppContext.BaseDirectory, "config.dat")))
 			{
 				ClientHelper.LoadClientList();
-				lbx_Main.ItemsSource = from client in ClientHelper.ClientList select AdeClientSource.FromArcadeClient(client);
+				lbx_clients.ItemsSource = from client in ClientHelper.ClientList select AdeClientSource.FromArcadeClient(client);
+				if (HandleArcadeChanInstallStatus() && File.Exists(Path.Combine(AppContext.BaseDirectory, "projects.dat")))
+				{
+					ProjectHelper.LoadProjectList();
+					lbx_projects.ItemsSource = from project in ProjectHelper.ProjectList select AdeProjectSource.FromArcadeProject(project);
+				}
 				StartWatchers();
 				AddTrayIcon();
 			}
@@ -159,7 +230,7 @@ namespace ArcadeManager.Forms
 				if (inputResult == MessageBoxResult.Yes)
 				{
 					lbl_status.Content = "正在搜索已安装的Arcade发行版……";
-					lbx_Main.IsEnabled = false;
+					lbx_clients.IsEnabled = false;
 					msp_Main.IsEnabled = false;
 					new Thread(async () =>
 					{
@@ -168,11 +239,12 @@ namespace ArcadeManager.Forms
 						ClientHelper.SaveClientList();
 						Dispatcher.Invoke(() =>
 						{
-							lbx_Main.ItemsSource = from client in ClientHelper.ClientList select AdeClientSource.FromArcadeClient(client);
-							lbx_Main.IsEnabled = true;
+							lbx_clients.ItemsSource = from client in ClientHelper.ClientList select AdeClientSource.FromArcadeClient(client);
+							lbx_clients.IsEnabled = true;
 							msp_Main.IsEnabled = true;
 							lbl_status.Content = $"搜索完成, 共找到 {ClientHelper.ClientList.Count} 个Arcade发行版。";
 							AddTrayIcon();
+							HandleArcadeChanInstallStatus();
 						});
 						StartWatchers();
 					})
@@ -181,21 +253,42 @@ namespace ArcadeManager.Forms
 			}
 		}
 
-		private void lbx_Main_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+		private bool HandleArcadeChanInstallStatus()
 		{
-			var selectedGrid = (lbx_Main.SelectedValue as AdeClientSource?)!.Value;
-			string selectedClientName = selectedGrid.ClientName;
-			var selectedClient = (from client in ClientHelper.ClientList where client.ClientName == selectedClientName select client).First();
-			lbl_status.Content = $"启动 {selectedClientName}...";
-			Process.Start(new ProcessStartInfo()
+			if (ClientHelper.ClientList.Exists((ArcadeClient client) => { return client.ClientName == "Arcade-Chan"; }))
 			{
-				FileName = selectedClient.ClientPath,
-				UseShellExecute = false,
-				WindowStyle = ProcessWindowStyle.Normal,
-				WorkingDirectory = new FileInfo(selectedClient.ClientPath).DirectoryName
-			});
-			WindowState = WindowState.Minimized;
-			lbl_status.Content = "就绪";
+				lbl_chanNotInstalled.Visibility = Visibility.Collapsed;
+				lbx_projects.Visibility = Visibility.Visible;
+				tsmi_projects.IsEnabled = true;
+				return true;
+			}
+			else
+			{
+				lbl_chanNotInstalled.Visibility = Visibility.Visible;
+				lbx_projects.Visibility = Visibility.Hidden;
+				tsmi_projects.IsEnabled = false;
+				return false;
+			}
+		}
+
+		private void lbx_clients_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+		{
+			if (lbx_clients.SelectedValue != null)
+			{
+				var selectedGrid = (lbx_clients.SelectedValue as AdeClientSource?).Value;
+				string selectedClientName = selectedGrid.ClientName;
+				var selectedClient = (from client in ClientHelper.ClientList where client.ClientName == selectedClientName select client).First();
+				lbl_status.Content = $"启动 {selectedClientName}...";
+				Process.Start(new ProcessStartInfo()
+				{
+					FileName = selectedClient.ClientPath,
+					UseShellExecute = false,
+					WindowStyle = ProcessWindowStyle.Normal,
+					WorkingDirectory = new FileInfo(selectedClient.ClientPath).DirectoryName
+				});
+				WindowState = WindowState.Minimized;
+				lbl_status.Content = "就绪";
+			}
 		}
 
 		private void tsmi_manage_reSearchClients_Click(object sender, RoutedEventArgs e)
@@ -207,11 +300,12 @@ namespace ArcadeManager.Forms
 					"您确定要继续执行操作吗?", "注意", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 				if (r == MessageBoxResult.Yes)
 				{
+					StopWatchers();
 					DeleteTrayIcon();
 					ClientHelper.ClientList.Clear();
-					lbx_Main.ItemsSource = null;
+					lbx_clients.ItemsSource = null;
 					lbl_status.Content = "正在搜索已安装的Arcade发行版……";
-					lbx_Main.IsEnabled = false;
+					lbx_clients.IsEnabled = false;
 					msp_Main.IsEnabled = false;
 					new Thread(async () =>
 					{
@@ -220,21 +314,24 @@ namespace ArcadeManager.Forms
 						ClientHelper.SaveClientList();
 						Dispatcher.Invoke(() =>
 						{
-							lbx_Main.ItemsSource = from client in ClientHelper.ClientList select AdeClientSource.FromArcadeClient(client);
-							lbx_Main.IsEnabled = true;
+							lbx_clients.ItemsSource = from client in ClientHelper.ClientList select AdeClientSource.FromArcadeClient(client);
+							lbx_clients.IsEnabled = true;
 							msp_Main.IsEnabled = true;
 							lbl_status.Content = $"搜索完成, 共找到 {ClientHelper.ClientList.Count} 个Arcade发行版。";
 							AddTrayIcon();
+							HandleArcadeChanInstallStatus();
 						});
+						StartWatchers();
 					})
 					{ IsBackground = true }.Start();
 				}
 			}
 			else
 			{
+				StopWatchers();
 				DeleteTrayIcon();
 				lbl_status.Content = "正在搜索已安装的Arcade发行版……";
-				lbx_Main.IsEnabled = false;
+				lbx_clients.IsEnabled = false;
 				msp_Main.IsEnabled = false;
 				new Thread(async () =>
 				{
@@ -243,12 +340,14 @@ namespace ArcadeManager.Forms
 					ClientHelper.SaveClientList();
 					Dispatcher.Invoke(() =>
 					{
-						lbx_Main.ItemsSource = from client in ClientHelper.ClientList select AdeClientSource.FromArcadeClient(client);
-						lbx_Main.IsEnabled = true;
+						lbx_clients.ItemsSource = from client in ClientHelper.ClientList select AdeClientSource.FromArcadeClient(client);
+						lbx_clients.IsEnabled = true;
 						msp_Main.IsEnabled = true;
 						lbl_status.Content = $"搜索完成, 共找到 {ClientHelper.ClientList.Count} 个Arcade发行版。";
 						AddTrayIcon();
+						HandleArcadeChanInstallStatus();
 					});
+					StartWatchers();
 				})
 				{ IsBackground = true }.Start();
 			}
@@ -260,7 +359,7 @@ namespace ArcadeManager.Forms
 			{
 				e.Cancel = true;
 				Hide();
-				trayIcon.ShowBalloonTip(0, "提示", "Project Arcade Manager已最小化到任务栏, 双击图标显示主窗口", System.Windows.Forms.ToolTipIcon.Info);
+				trayIcon.ShowBalloonTip(0, "提示", "Project Arcade Hub已最小化到任务栏, 双击图标显示主窗口", System.Windows.Forms.ToolTipIcon.Info);
 			}
 		}
 
@@ -346,7 +445,7 @@ namespace ArcadeManager.Forms
 						File.Delete(Path.Combine(watcher.Path, e.Name));
 						watcher.EnableRaisingEvents = true;
 						affectedClientNames.AddRange(from client in ClientHelper.ClientList
-																						 where client.ClientBackgroundPath == watcher.Path
+													 where client.ClientBackgroundPath == watcher.Path
 																						 select client.ClientName);
 					}
 				}
@@ -420,6 +519,165 @@ namespace ArcadeManager.Forms
 		{
 			var about = new Win_About();
 			about.Show();
+		}
+
+		private void lbx_projects_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+		{
+			if (lbx_projects.SelectedValue != null)
+			{
+				var arcadeChanList = ClientHelper.ClientList.FindAll((ArcadeClient client) => { return client.ClientName == "Arcade-Chan"; });
+				if (arcadeChanList.Count > 1)
+				{
+					MessageBox.Show("诶？发行版列表当中怎么出现了好几个Arcade-Chan？(っ °Д °;)っ\n快把重复的卸载掉后重新查找所有Arcade发行版然后再试试……?", "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+				}
+				else if (!arcadeChanList.Any())
+				{
+					MessageBox.Show("您似乎还未安装Arcade-Chan发行版的任何版本呢……\nArcade项目管理仅适用于Arcade-Chan发行版哦\n安装一个Arcade-Chan发行版(版本v0.1.0及以上)后重新查找所有Arcade发行版然后再来试试吧", "Oops!",
+						MessageBoxButton.OK, MessageBoxImage.Error);
+				}
+				else
+				{
+					var chanClient = arcadeChanList.First();
+					string chanClientPath = chanClient.ClientPath;
+					var selectedProj = (lbx_projects.SelectedItem as AdeProjectSource?)!.Value;
+					if (File.Exists(selectedProj.ProjFilePath))
+					{
+						lbl_status.Content = $"启动 {chanClient.ClientName}...";
+						Process.Start(new ProcessStartInfo()
+						{
+							FileName = chanClientPath,
+							UseShellExecute = false,
+							WindowStyle = ProcessWindowStyle.Normal,
+							Arguments = '"' + selectedProj.ProjFilePath + '"',
+							WorkingDirectory = selectedProj.ProjectPath
+						});
+						WindowState = WindowState.Minimized;
+						lbl_status.Content = "就绪";
+					}
+					else
+					{
+						MessageBox.Show("这个项目的配置文件似乎不见了呢...\n" +
+							"检查一下项目是不是已经挪动位置了qwq\n" +
+							"查找的配置文件路径:\n" + selectedProj.ProjFilePath, "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+					}
+				}
+			}
+		}
+
+		private void tsmi_projects_add_Click(object sender, RoutedEventArgs e)
+		{
+			var odd = new FolderBrowserDialog()
+			{
+				Description = "选择包含base.ogg/base.mp3/base.wav的Arcade项目文件夹"
+			};
+			if (odd.ShowDialog() == DialogResult2.OK && Directory.Exists(odd.SelectedPath))
+			{
+				try
+				{
+					if (File.Exists(Path.Combine(odd.SelectedPath, "Arcade", "Project.arcade")))
+					{
+						var projData = JObject.Parse(File.ReadAllText(Path.Combine(odd.SelectedPath, "Arcade", "Project.arcade"), Encoding.UTF8));
+						string projName = projData.Value<string>("Title")!;
+						if (ProjectHelper.ProjectList.Exists((ArcadeProject project) => { return project.ProjectName == projName; }))
+						{
+							MessageBox.Show("该项目已在列表当中哦", "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+						}
+						else
+						{
+							DeleteTrayIcon();
+							var addProj = new ArcadeProject()
+							{
+								ProjectName = projName,
+								ProjectPath = odd.SelectedPath,
+								ProjFilePath = Path.Combine(odd.SelectedPath, "Arcade", "Project.arcade")
+							};
+							lbx_projects.ItemsSource = null;
+							ProjectHelper.ProjectList = ProjectHelper.ProjectList.Prepend(addProj).ToList();
+							ProjectHelper.SaveProjectList();
+							lbx_projects.ItemsSource = from project in ProjectHelper.ProjectList select AdeProjectSource.FromArcadeProject(project);
+							AddTrayIcon();
+						}
+					}
+				}
+				catch(Exception ex)
+				{
+					MessageBox.Show("读取项目元文件时发生问题......\n要不用Arcade-Chan重新生成一个项目元文件...?\n" +
+						$"异常: {ex.GetType()}", "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+				}
+			}
+		}
+
+		private void tsmi_projects_remove_Click(object sender, RoutedEventArgs e)
+		{
+			if (lbx_projects.SelectedItem != null)
+			{
+				bool isDeletePermanently = GetAsyncKeyState(KEY_SHIFT) != 0;
+				var selectedProj = (lbx_projects.SelectedItem as AdeProjectSource?)!.Value;
+				bool isConfirmedRemove = false;
+				try
+				{
+					if (isDeletePermanently) // 调用函数时(单击时)同时按下了Shift键
+					{
+						var r = MessageBox.Show("警告: 此操作不可撤销!\n" +
+							$"确实要从磁盘上删除Arcade项目【{selectedProj.ProjectName}】吗?", "Arcade项目删除确认", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+						if (r == MessageBoxResult.Yes)
+						{
+							DeleteTrayIcon();
+							isConfirmedRemove = true;
+							lbx_projects.ItemsSource = null;
+							ProjectHelper.ProjectList.RemoveAll((ArcadeProject project) => { return project.ProjFilePath == selectedProj.ProjFilePath; });
+							ProjectHelper.SaveProjectList();
+							Directory.Delete(selectedProj.ProjectPath,true);
+							lbx_projects.ItemsSource = from project in ProjectHelper.ProjectList select AdeProjectSource.FromArcadeProject(project);
+						}
+					}
+					else
+					{
+						var r = MessageBox.Show("确定要移除Arcade项目【{selectedProj.ProjectName}】吗?\n" +
+							"此操作不会删除项目文件夹。", "Arcade项目移除确认", MessageBoxButton.YesNo, MessageBoxImage.Question);
+						if (r == MessageBoxResult.Yes)
+						{
+							DeleteTrayIcon();
+							isConfirmedRemove = true;
+							lbx_projects.ItemsSource = null;
+							ProjectHelper.ProjectList.RemoveAll((ArcadeProject project) => { return project.ProjFilePath == selectedProj.ProjFilePath; });
+							ProjectHelper.SaveProjectList();
+							lbx_projects.ItemsSource = from project in ProjectHelper.ProjectList select AdeProjectSource.FromArcadeProject(project);
+						}
+					}
+				}
+				catch(DirectoryNotFoundException)
+				{
+					MessageBox.Show($"{(isDeletePermanently ? "删除" : "移除")}Arcade项目【{selectedProj.ProjFilePath}】失败: 项目文件夹不存在", "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+				}
+				catch(Exception ex)
+				{
+					MessageBox.Show($"{(isDeletePermanently ? "删除" : "移除")}Arcade项目【{selectedProj.ProjFilePath}】失败: 未知的错误\n" +
+						$"({ex.GetType()})", "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+				}
+				finally
+				{
+					if (isConfirmedRemove)
+					{
+						AddTrayIcon();
+					}
+				}
+			}
+		}
+
+		[DllImport("User32")]
+		private static extern short GetAsyncKeyState(int vKey);
+
+		private const int KEY_SHIFT = 0x10;
+
+		private void lbx_projects_LostFocus(object sender, RoutedEventArgs e)
+		{
+			tsmi_projects_remove.IsEnabled = false;
+		}
+
+		private void lbx_projects_SelectionChanged(object sender, RoutedEventArgs e)
+		{
+			tsmi_projects_remove.IsEnabled = true;
 		}
 	}
 }

@@ -1,7 +1,7 @@
-﻿<Application x:Class="ArcadeManager.App"
+﻿<Application x:Class="ArcadeHub.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:ArcadeManager"
+             xmlns:local="clr-namespace:ArcadeHub"
              StartupUri="Forms/Win_Start.xaml">
     <Application.Resources>
          

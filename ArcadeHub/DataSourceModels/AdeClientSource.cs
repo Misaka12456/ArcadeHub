@@ -1,4 +1,4 @@
-﻿using ArcadeManager.Models;
+﻿using ArcadeHub.Models;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -10,7 +10,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace ArcadeManager.DataSourceModels
+namespace ArcadeHub.DataSourceModels
 {
 	/// <summary>
 	/// 表示一个Arcade发行版客户端信息类型的数据源。
