@@ -58,7 +58,7 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <Label x:Name="lbl_chanNotInstalled" Content="   未安装任何Arcade-Chan发行版版本。&#xA; 项目管理仅适用于Arcade-Chan发行版。" Foreground="Gray" FontSize="13" HorizontalContentAlignment="Center" Margin="256,193,257,194" />
+                    <Label x:Name="lbl_chanNotInstalled" Content="        未安装任何支持项目管理的发行版版本。&#xA;       项目管理仅适用于 Arcade-Chan 发行版&#xD;&#xA;或版本为 Build 45 及以上的 Arcade-One 发行版。&#xD;&#xA;(若两种发行版均已安装则优先调用 Arcade-Chan )" Foreground="Gray" FontSize="13" HorizontalContentAlignment="Center" Margin="238,172,239,173" />
                 </Grid>
             </TabItem>
             <TabItem Header="发行版" FontSize="18" Width="120" Height="50">

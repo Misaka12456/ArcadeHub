@@ -85,7 +85,7 @@ namespace ArcadeHub.Core
 								ClientPath = tempClient.FullName,
 								ClientBackgroundPath = Path.Combine(tempClient.Directory.FullName, "自定义背景(User Backgrounds)"),
 								ClientSkinPath = null,
-								Developer = "yyyr & LAM"
+								Developer = "yyyr / LAM / Soran"
 							});
 							break;
 						case "arcade-plus":

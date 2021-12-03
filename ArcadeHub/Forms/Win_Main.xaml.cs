@@ -68,38 +68,72 @@ namespace ArcadeHub.Forms
 					tsmi_ntfi_project.Click += (sender, e) =>
 					{
 						var arcadeChanList = ClientHelper.ClientList.FindAll((ArcadeClient client) => { return client.ClientName == "Arcade-Chan"; });
+						var arcadeOneList = ClientHelper.ClientList.FindAll((ArcadeClient client) => { return client.ClientName == "Arcade-One"; });
 						if (arcadeChanList.Count > 1)
 						{
 							MessageBox.Show("诶？发行版列表当中怎么出现了好几个Arcade-Chan？(っ °Д °;)っ\n快把重复的卸载掉后重新查找所有Arcade发行版然后再试试……?", "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
 						}
-						else if (!arcadeChanList.Any())
+						else if (arcadeOneList.Count > 1)
 						{
-							MessageBox.Show("您似乎还未安装Arcade-Chan发行版的任何版本呢……\nArcade项目管理仅适用于Arcade-Chan发行版哦\n安装一个Arcade-Chan发行版(版本v0.1.0及以上)后重新查找所有Arcade发行版然后再来试试吧", "Oops!",
+							MessageBox.Show("诶？发行版列表当中怎么出现了好几个Arcade-One？(っ °Д °;)っ\n快把重复的卸载掉后重新查找所有Arcade发行版然后再试试……?", "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+						}
+						else if (!arcadeChanList.Any() && !arcadeOneList.Any())
+						{
+							MessageBox.Show("您似乎还未安装Arcade-Chan或Arcade-One发行版的任何版本呢……\nArcade项目管理仅适用于Arcade-Chan发行版\n" +
+								"或版本号高于或等于Build 45的Arcade-One发行版哦\n安装一个Arcade-Chan发行版(版本v0.1.0及以上)或Arcade-One发行版(版本号Build 45及以上)\n后重新查找所有Arcade发行版然后再来试试吧", "Oops!",
 								MessageBoxButton.OK, MessageBoxImage.Error);
 						}
 						else
 						{
-							var chanClient = arcadeChanList.First();
-							string chanClientPath = chanClient.ClientPath;
-							if (File.Exists(project.ProjFilePath))
+							if (arcadeChanList.Any())
 							{
-								lbl_status.Content = $"启动 {chanClient.ClientName}...";
-								Process.Start(new ProcessStartInfo()
+								var chanClient = arcadeChanList.First();
+								string chanClientPath = chanClient.ClientPath;
+								if (File.Exists(project.ProjFilePath))
 								{
-									FileName = chanClientPath,
-									UseShellExecute = false,
-									WindowStyle = ProcessWindowStyle.Normal,
-									Arguments = '"' + project.ProjFilePath + '"',
-									WorkingDirectory = project.ProjectPath
-								});
-								WindowState = WindowState.Minimized;
-								lbl_status.Content = "就绪";
+									lbl_status.Content = $"启动 {chanClient.ClientName}...";
+									Process.Start(new ProcessStartInfo()
+									{
+										FileName = chanClientPath,
+										UseShellExecute = false,
+										WindowStyle = ProcessWindowStyle.Normal,
+										Arguments = '"' + project.ProjFilePath + '"',
+										WorkingDirectory = project.ProjectPath
+									});
+									WindowState = WindowState.Minimized;
+									lbl_status.Content = "就绪";
+								}
+								else
+								{
+									MessageBox.Show("这个项目的配置文件似乎不见了呢...\n" +
+										"检查一下项目是不是已经挪动位置了qwq\n" +
+										"查找的配置文件路径:\n" + project.ProjFilePath, "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+								}
 							}
-							else
+							else if (arcadeOneList.Any())
 							{
-								MessageBox.Show("这个项目的配置文件似乎不见了呢...\n" +
-									"检查一下项目是不是已经挪动位置了qwq\n" +
-									"查找的配置文件路径:\n" + project.ProjFilePath, "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+								var oneClient = arcadeChanList.First();
+								string oneClientPath = oneClient.ClientPath;
+								if (File.Exists(project.ProjFilePath))
+								{
+									lbl_status.Content = $"启动 {oneClient.ClientName}...";
+									Process.Start(new ProcessStartInfo()
+									{
+										FileName = oneClientPath,
+										UseShellExecute = false,
+										WindowStyle = ProcessWindowStyle.Normal,
+										Arguments = '"' + project.ProjFilePath + '"',
+										WorkingDirectory = project.ProjectPath
+									});
+									WindowState = WindowState.Minimized;
+									lbl_status.Content = "就绪";
+								}
+								else
+								{
+									MessageBox.Show("这个项目的配置文件似乎不见了呢...\n" +
+										"检查一下项目是不是已经挪动位置了qwq\n" +
+										"查找的配置文件路径:\n" + project.ProjFilePath, "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+								}
 							}
 						}
 					};
@@ -215,7 +249,7 @@ namespace ArcadeHub.Forms
 			{
 				ClientHelper.LoadClientList();
 				lbx_clients.ItemsSource = from client in ClientHelper.ClientList select AdeClientSource.FromArcadeClient(client);
-				if (HandleArcadeChanInstallStatus() && File.Exists(Path.Combine(AppContext.BaseDirectory, "projects.dat")))
+				if (HandleArcadeChanOrOneInstallStatus() && File.Exists(Path.Combine(AppContext.BaseDirectory, "projects.dat")))
 				{
 					ProjectHelper.LoadProjectList();
 					lbx_projects.ItemsSource = from project in ProjectHelper.ProjectList select AdeProjectSource.FromArcadeProject(project);
@@ -244,7 +278,7 @@ namespace ArcadeHub.Forms
 							msp_Main.IsEnabled = true;
 							lbl_status.Content = $"搜索完成, 共找到 {ClientHelper.ClientList.Count} 个Arcade发行版。";
 							AddTrayIcon();
-							HandleArcadeChanInstallStatus();
+							HandleArcadeChanOrOneInstallStatus();
 						});
 						StartWatchers();
 					})
@@ -253,9 +287,9 @@ namespace ArcadeHub.Forms
 			}
 		}
 
-		private bool HandleArcadeChanInstallStatus()
+		private bool HandleArcadeChanOrOneInstallStatus()
 		{
-			if (ClientHelper.ClientList.Exists((ArcadeClient client) => { return client.ClientName == "Arcade-Chan"; }))
+			if (ClientHelper.ClientList.Exists((ArcadeClient client) => { return client.ClientName is "Arcade-Chan" or "Arcade-One"; }))
 			{
 				lbl_chanNotInstalled.Visibility = Visibility.Collapsed;
 				lbx_projects.Visibility = Visibility.Visible;
@@ -319,7 +353,7 @@ namespace ArcadeHub.Forms
 							msp_Main.IsEnabled = true;
 							lbl_status.Content = $"搜索完成, 共找到 {ClientHelper.ClientList.Count} 个Arcade发行版。";
 							AddTrayIcon();
-							HandleArcadeChanInstallStatus();
+							HandleArcadeChanOrOneInstallStatus();
 						});
 						StartWatchers();
 					})
@@ -345,7 +379,7 @@ namespace ArcadeHub.Forms
 						msp_Main.IsEnabled = true;
 						lbl_status.Content = $"搜索完成, 共找到 {ClientHelper.ClientList.Count} 个Arcade发行版。";
 						AddTrayIcon();
-						HandleArcadeChanInstallStatus();
+						HandleArcadeChanOrOneInstallStatus();
 					});
 					StartWatchers();
 				})
@@ -526,39 +560,74 @@ namespace ArcadeHub.Forms
 			if (lbx_projects.SelectedValue != null)
 			{
 				var arcadeChanList = ClientHelper.ClientList.FindAll((ArcadeClient client) => { return client.ClientName == "Arcade-Chan"; });
+				var arcadeOneList = ClientHelper.ClientList.FindAll((ArcadeClient client) => { return client.ClientName == "Arcade-One"; });
 				if (arcadeChanList.Count > 1)
 				{
 					MessageBox.Show("诶？发行版列表当中怎么出现了好几个Arcade-Chan？(っ °Д °;)っ\n快把重复的卸载掉后重新查找所有Arcade发行版然后再试试……?", "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
 				}
-				else if (!arcadeChanList.Any())
+				else if (arcadeOneList.Count > 1)
 				{
-					MessageBox.Show("您似乎还未安装Arcade-Chan发行版的任何版本呢……\nArcade项目管理仅适用于Arcade-Chan发行版哦\n安装一个Arcade-Chan发行版(版本v0.1.0及以上)后重新查找所有Arcade发行版然后再来试试吧", "Oops!",
+					MessageBox.Show("诶？发行版列表当中怎么出现了好几个Arcade-One？(っ °Д °;)っ\n快把重复的卸载掉后重新查找所有Arcade发行版然后再试试……?", "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+				}
+				else if (!arcadeChanList.Any() && !arcadeOneList.Any())
+				{
+					MessageBox.Show("您似乎还未安装Arcade-Chan或Arcade-One发行版的任何版本呢……\nArcade项目管理仅适用于Arcade-Chan发行版\n" +
+						"或版本号高于或等于Build 45的Arcade-One发行版哦\n安装一个Arcade-Chan发行版(版本v0.1.0及以上)或Arcade-One发行版(版本号Build 45及以上)\n后重新查找所有Arcade发行版然后再来试试吧", "Oops!",
 						MessageBoxButton.OK, MessageBoxImage.Error);
 				}
 				else
 				{
-					var chanClient = arcadeChanList.First();
-					string chanClientPath = chanClient.ClientPath;
-					var selectedProj = (lbx_projects.SelectedItem as AdeProjectSource?)!.Value;
-					if (File.Exists(selectedProj.ProjFilePath))
+					if (arcadeChanList.Any())
 					{
-						lbl_status.Content = $"启动 {chanClient.ClientName}...";
-						Process.Start(new ProcessStartInfo()
+						var chanClient = arcadeChanList.First();
+						string chanClientPath = chanClient.ClientPath;
+						var selectedProj = (lbx_projects.SelectedItem as AdeProjectSource?)!.Value;
+						if (File.Exists(selectedProj.ProjFilePath))
 						{
-							FileName = chanClientPath,
-							UseShellExecute = false,
-							WindowStyle = ProcessWindowStyle.Normal,
-							Arguments = '"' + selectedProj.ProjFilePath + '"',
-							WorkingDirectory = selectedProj.ProjectPath
-						});
-						WindowState = WindowState.Minimized;
-						lbl_status.Content = "就绪";
+							lbl_status.Content = $"启动 {chanClient.ClientName}...";
+							Process.Start(new ProcessStartInfo()
+							{
+								FileName = chanClientPath,
+								UseShellExecute = false,
+								WindowStyle = ProcessWindowStyle.Normal,
+								Arguments = '"' + selectedProj.ProjFilePath + '"',
+								WorkingDirectory = selectedProj.ProjectPath
+							});
+							WindowState = WindowState.Minimized;
+							lbl_status.Content = "就绪";
+						}
+						else
+						{
+							MessageBox.Show("这个项目的配置文件似乎不见了呢...\n" +
+								"检查一下项目是不是已经挪动位置了qwq\n" +
+								"查找的配置文件路径:\n" + selectedProj.ProjFilePath, "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+						}
 					}
-					else
+					else if (arcadeOneList.Any())
 					{
-						MessageBox.Show("这个项目的配置文件似乎不见了呢...\n" +
-							"检查一下项目是不是已经挪动位置了qwq\n" +
-							"查找的配置文件路径:\n" + selectedProj.ProjFilePath, "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+						var oneClient = arcadeOneList.First();
+						string oneClientPath = oneClient.ClientPath;
+						var selectedProj = (lbx_projects.SelectedItem as AdeProjectSource?)!.Value;
+						if (File.Exists(selectedProj.ProjFilePath))
+						{
+							lbl_status.Content = $"启动 {oneClient.ClientName}...";
+							Process.Start(new ProcessStartInfo()
+							{
+								FileName = oneClientPath,
+								UseShellExecute = false,
+								WindowStyle = ProcessWindowStyle.Normal,
+								Arguments = '"' + selectedProj.ProjFilePath + '"',
+								WorkingDirectory = selectedProj.ProjectPath
+							});
+							WindowState = WindowState.Minimized;
+							lbl_status.Content = "就绪";
+						}
+						else
+						{
+							MessageBox.Show("这个项目的配置文件似乎不见了呢...\n" +
+								"检查一下项目是不是已经挪动位置了qwq\n" +
+								"查找的配置文件路径:\n" + selectedProj.ProjFilePath, "Oops!", MessageBoxButton.OK, MessageBoxImage.Error);
+						}
 					}
 				}
 			}
