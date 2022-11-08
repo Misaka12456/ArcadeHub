@@ -12,10 +12,10 @@ namespace ArcadeHub.Core
 {
 	public static class ClientHelper
 	{
-		/// <summary>
-		/// Arcade客户端的列表。
-		/// </summary>
-		public static List<ArcadeClient> ClientList { get; set; }
+        /// <summary>
+        /// Arcade客户端的列表。
+        /// </summary>
+        public static List<ArcadeClient> ClientList { get; set; }
 
 		private static List<FileInfo> tempData;
 		static ClientHelper()
@@ -31,13 +31,31 @@ namespace ArcadeHub.Core
 		{
 			return await Task.Run(new Func<List<ArcadeClient>>(() =>
 			{
+				tempData.Clear();
 				string[] drives = Directory.GetLogicalDrives();
+				Queue<DirectoryInfo> dirs = new();
 				foreach (string drive in drives)
+					try
+					{
+						foreach (var dir in new DirectoryInfo(drive).EnumerateDirectories())
+							dirs.Enqueue(dir);
+					}
+					catch { }//访问失败就跳过
+				while (dirs.Count > 0)
 				{
-					tempData.AddRange(from file in new MFTScanner().EnumerateFiles(drive) where 
-									  (new FileInfo(file).Name.StartsWith("Arcade") && new FileInfo(file).Name.ToLower().EndsWith(".exe")
-									  && Directory.Exists(Path.Combine(new FileInfo(file).Directory.FullName,$"{new FileInfo(file).Name.Replace(".exe",string.Empty)}_Data"))) select new FileInfo(file));
+					var dir = dirs.First();
+					try
+					{
+						foreach (var file in dir.EnumerateFiles())
+							if (file.Name.StartsWith("Arcade") && 
+							file.Name.EndsWith(".exe")&&
+							Directory.Exists(Path.Combine(dir.FullName, $"{file.Name.Substring(0, file.Name.Length - 4)}_Data"))
+							)tempData.Add(file);
+					}
+					catch { }//同上
+					dirs.Dequeue();
 				}
+				
 				var r = new List<ArcadeClient>();
 				foreach (var tempClient in tempData)
 				{
